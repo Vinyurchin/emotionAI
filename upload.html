@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Image</title>
+</head>
+<body>
+    <h1>Upload Image</h1>
+    <form id="upload-form" enctype="multipart/form-data">
+        <input type="file" id="image-upload" accept="image/*">
+        <input type="submit" value="Upload Image">
+        <p id="upload-status"></p>
+    </form>
+    <img id="uploaded-image" style="display:none;" />
+    <script>
+        document.getElementById('upload-form').onsubmit = function(event) {
+            event.preventDefault();
+            var fileInput = document.getElementById('image-upload');
+            var file = fileInput.files[0];
+            console.log("Selected file:", file);
+
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                console.log("File read successfully:", e.target.result);
+
+                var img = document.getElementById('uploaded-image');
+                img.src = e.target.result;
+                img.style.display = 'block';
+
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "http://localhost:8080", true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === XMLHttpRequest.DONE) {
+                        console.log("XHR status:", xhr.status);
+                        console.log("XHR response:", xhr.responseText);
+
+                        var status = document.getElementById('upload-status');
+                        if (xhr.status === 200) {
+                            status.textContent = xhr.responseText;
+                        } else {
+                            status.textContent = "Failed to upload image.";
+                        }
+                    }
+                };
+                xhr.send(JSON.stringify({
+                    image: e.target.result
+                }));
+                console.log("Xhr sent");
+            };
+            reader.readAsDataURL(file);
+        };
+    </script>
+</body>
+</html>
